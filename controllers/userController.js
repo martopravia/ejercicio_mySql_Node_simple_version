@@ -1,17 +1,21 @@
+const { findByIdAndUpdate } = require("../models/User");
 const User = require("../models/User");
 
 const userController = {
   index: async (req, res) => {
     const users = await User.find();
+    console.log("viendo usuarios");
     return res.render("index", { users });
   },
   create: async (req, res) => {
-    return res.render("addNewUserForm");
+    console.log("Entré a la vista de crear");
+    return res.render("addNewUserForm", { user: {} });
   },
   store: async (req, res) => {
     try {
       const { firstname, lastname, age } = req.body;
-
+      console.log(req.body);
+      await User.create({ firstname, lastname, age });
       return res.redirect("/usuarios");
     } catch (error) {
       console.error("No se pudo agregar al usuario: ", error);
@@ -19,24 +23,21 @@ const userController = {
     }
   },
   edit: async (req, res) => {
-    // try {
-    //   const { id } = req.params;
-    //   const users = await dbQuery("SELECT * FROM users WHERE id = ?", [id]);
-    //   const user = users[0];
-    //   return res.render("editUserForm", { user });
-    // } catch (error) {
-    //   console.error("No se pudo traer contacto: ", error);
-    //   return res.status(500).send("Error del servidor al traer usuario");
-    // }
+    try {
+      const { id } = req.params;
+      const user = await User.findById(id);
+      console.log(user);
+      return res.render("editUserForm", { user });
+    } catch (error) {
+      console.error("No se pudo traer contacto: ", error);
+      return res.status(500).send("Error del servidor al traer usuario");
+    }
   },
   update: async (req, res) => {
     try {
       const { id } = req.params;
       const { firstname, lastname, age } = req.body;
-      // await dbQuery(
-      //   "UPDATE users SET firstname = ?, lastname = ?, age = ? WHERE id = ?",
-      //   [firstname, lastname, age, id]
-      // );
+      await User.findByIdAndUpdate(id, { firstname, lastname, age });
       return res.redirect("/usuarios");
     } catch (error) {
       console.error("No se pudo editar contacto: ", error);
@@ -46,7 +47,8 @@ const userController = {
   destroy: async (req, res) => {
     try {
       const { id } = req.params;
-      // await dbQuery("DELETE FROM users WHERE id = ?", [id]);
+      await User.findByIdAndDelete(id);
+      console.log(`Eliminado el id ${id}`);
       return res.redirect("/usuarios");
     } catch (error) {
       console.error("No se pudo borrar contacto: ", error);
